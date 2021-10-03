@@ -1,47 +1,9 @@
-import os
-from datetime import datetime
+from flask import render_template, flash
 
-from flask import Flask, render_template, flash
-from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired
-from flask_sqlalchemy import SQLAlchemy
+from app import app, db
+from forms import NamerForm, UserForm
+from models import Users
 
-
-
-
-# Create a Flask Instance
-app = Flask(__name__)
-
-#app.config.from_object(Configuration)
-# Secret key!
-app.config['SECRET_KEY'] = 'SECRET_KEY'
-
-# Add Database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-
-# Initialize the Database
-db = SQLAlchemy(app)
-
-# Create Model
-class Users(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False)
-    email = db.Column(db.String(120), nullable=False, unique=True)
-    date_added = db.Column(db.DateTime, default=datetime.utcnow())
-
-    def __repr__(self):
-        return f'<Name: {self.name}>'
-
-class NamerForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired()])
-    submit = SubmitField('Submit')
-
-# Create a Form Class
-class UserForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired()])
-    email = StringField('Email', validators=[DataRequired()])
-    submit = SubmitField('Submit')
 
 @app.route('/user/add', methods=['POST', 'GET'])
 def add_user():
@@ -66,8 +28,7 @@ def add_user():
 # loalhost:8000
 @app.route('/')
 def index():
-    #secret = "<h1>{}</h1>".format(app.config['SECRET_KEY'])
-    secret = 'lukytyer'
+    secret = "<h1>{}</h1>".format(app.config['SECRET_KEY'])
     pizza_list = ["pepperony", "margarita", "napoly", "for season"]
     flash("Welcome To Our Website!")
     return render_template('index.html', data=secret, pizza_list=pizza_list)
@@ -98,9 +59,3 @@ def name():
     return render_template('name.html',
                            name=name,
                            form=form)
-
-
-
-if __name__=='__main__':
-    app.run()
-
