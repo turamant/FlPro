@@ -1,4 +1,6 @@
-from flask import render_template, flash
+
+
+from flask import render_template, flash, request
 
 from app import app, db
 from forms import NamerForm, UserForm
@@ -12,12 +14,15 @@ def add_user():
     if form.validate_on_submit():
         user = Users.query.filter_by(email=form.email.data).first()
         if user is None:
-            user = Users(name=form.name.data, email=form.email.data)
+            user = Users(name=form.name.data,
+                         email=form.email.data,
+                         favorite_color=form.favorite_color.data)
             db.session.add(user)
             db.session.commit()
         name = form.name.data
         form.name.data = ''
         form.email.data = ''
+        form.favorite_color.data = ''
         flash("User Added Successed!")
     our_users = Users.query.order_by(Users.date_added)
     return render_template('add_user.html',
@@ -59,3 +64,30 @@ def name():
     return render_template('name.html',
                            name=name,
                            form=form)
+
+@app.route('/update/<int:id>', methods=['GET', 'POST'])
+def update(id):
+    form = UserForm()
+    name_to_update = Users.query.get_or_404(id)
+    if request.method == 'POST':
+        name_to_update.name = request.form['name']
+        name_to_update.email = request.form['email']
+        name_to_update.favorite_color = request.form['favorite_color']
+        try:
+            db.session.commit()
+            flash('User update successfull!')
+            return render_template('update.html',
+                                   form=form,
+                                   name_to_update=name_to_update
+                                   )
+        except:
+            flash('Errror User update ...try again!')
+            return render_template('update.html',
+                                   form=form,
+                                   name_to_update=name_to_update
+                                   )
+    else:
+        return render_template('update.html',
+                               form=form,
+                               name_to_update=name_to_update
+                               )
